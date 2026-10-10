@@ -58,8 +58,8 @@ const ring=new THREE.Mesh(new THREE.TorusGeometry(1.15,.012,8,90),new THREE.Mesh
 const mannequin=new THREE.Group();scene.add(mannequin);
 let glbWoman=null;
 const womanLoader=new GLTFLoader();
-// Public-domain/CC0 GLB model from Innerscene (Priya, athletic woman).
-const womanModelUrl='https://www.innerscene.com/api/library/priya-3d-person-woman-athletic-walking-bf61042b/download';
+// CC0 GLB model from the public GitHub repository CC0-Public-Domain-Models (smooth_female_casual).
+const womanModelUrl='https://raw.githubusercontent.com/Papyszoo/CC0-Public-Domain-Models/main/packs/quaternius-animatedwomen/models/smooth_female_casual/smooth_female_casual.glb';
 womanLoader.load(womanModelUrl,(gltf)=>{
   glbWoman=gltf.scene;
   const box=new THREE.Box3().setFromObject(glbWoman);
