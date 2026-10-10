@@ -31,6 +31,9 @@ button{cursor:pointer;touch-action:manipulation}
 <header class="topbar"><div class="brand">OUTFIT <span>STUDIO</span> / 3D</div><div class="tag">360° · INTERAKTIV</div></header>
 <section class="panel">
  <div class="panel-head"><div><div class="eyebrow">Dein Look, dein Stil</div><div class="title" id="lookName">Sport Essentials</div></div><div class="hint">3D Vorschau</div></div>
+ <div class="section"><span class="label">WEIBLICHES 3D-MODELL</span><div class="choices" id="models">
+  <button class="choice active" data-model="smooth_female_casual">✨ Casual</button><button class="choice" data-model="female_dress">👗 Kleid</button><button class="choice" data-model="female_alternative">🌟 Alternative</button><button class="choice" data-model="female_tank_top">🏖️ Tanktop</button>
+ </div></div>
  <div class="section"><span class="label">OUTFIT-STIL</span><div class="choices" id="styles">
   <button class="choice active" data-style="sport">🏃 Sport</button><button class="choice" data-style="casual">👕 Casual</button><button class="choice" data-style="elegant">🧥 Elegant</button><button class="choice" data-style="street">🧢 Streetwear</button>
  </div></div>
@@ -58,26 +61,49 @@ const ring=new THREE.Mesh(new THREE.TorusGeometry(1.15,.012,8,90),new THREE.Mesh
 const mannequin=new THREE.Group();scene.add(mannequin);
 let glbWoman=null;
 const womanLoader=new GLTFLoader();
-// CC0 GLB model from the public GitHub repository CC0-Public-Domain-Models (smooth_female_casual).
-const womanModelUrl='./models/smooth_female_casual.glb';
-womanLoader.load(womanModelUrl,(gltf)=>{
-  glbWoman=gltf.scene;
-  const box=new THREE.Box3().setFromObject(glbWoman);
-  const size=box.getSize(new THREE.Vector3());
-  const center=box.getCenter(new THREE.Vector3());
-  const targetHeight=2.55;
-  glbWoman.scale.setScalar(targetHeight/Math.max(size.y,0.001));
-  glbWoman.position.x=-center.x*glbWoman.scale.x;
-  glbWoman.position.z=-center.z*glbWoman.scale.z;
-  glbWoman.position.y=-box.min.y*glbWoman.scale.y;
-  glbWoman.traverse((obj)=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=true;}});
-  scene.add(glbWoman);
-  mannequin.visible=false;
-  document.getElementById('loading').style.display='none';
-},undefined,(error)=>{
-  console.warn('GLB-Frau konnte nicht geladen werden; nutze die integrierte 3D-Figur.',error);
-  document.getElementById('loading').style.display='none';
-});
+// CC0 female GLB models bundled locally in this repository.
+const womanModels={
+  smooth_female_casual:'./models/smooth_female_casual.glb',
+  female_dress:'./models/female_dress.glb',
+  female_alternative:'./models/female_alternative.glb',
+  female_tank_top:'./models/female_tank_top.glb'
+};
+const loadedWomanModels={};
+let activeModelKey='smooth_female_casual';
+function showWomanModel(modelKey){
+  if(!womanModels[modelKey]) return;
+  document.querySelectorAll('#models .choice').forEach(b=>b.classList.toggle('active',b.dataset.model===modelKey));
+  activeModelKey=modelKey;
+  const applyModel=(source)=>{
+    if(activeModelKey!==modelKey) return;
+    if(glbWoman){scene.remove(glbWoman);glbWoman=null;}
+    glbWoman=source.clone(true);
+    const box=new THREE.Box3().setFromObject(glbWoman);
+    const size=box.getSize(new THREE.Vector3());
+    const center=box.getCenter(new THREE.Vector3());
+    const targetHeight=2.55;
+    glbWoman.scale.setScalar(targetHeight/Math.max(size.y,0.001));
+    glbWoman.position.x=-center.x*glbWoman.scale.x;
+    glbWoman.position.z=-center.z*glbWoman.scale.z;
+    glbWoman.position.y=-box.min.y*glbWoman.scale.y;
+    glbWoman.traverse(obj=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=true;}});
+    scene.add(glbWoman);
+    mannequin.visible=false;
+    document.getElementById('loading').style.display='none';
+  };
+  if(loadedWomanModels[modelKey]){applyModel(loadedWomanModels[modelKey]);return;}
+  document.getElementById('loading').style.display=glbWoman?'none':'grid';
+  womanLoader.load(womanModels[modelKey],gltf=>{
+    loadedWomanModels[modelKey]=gltf.scene;
+    applyModel(gltf.scene);
+  },undefined,error=>{
+    console.warn('3D-Modell konnte nicht geladen werden:',modelKey,error);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('lookName').textContent='Modell konnte nicht geladen werden';
+  });
+}
+document.querySelectorAll('#models .choice').forEach(b=>b.addEventListener('click',()=>showWomanModel(b.dataset.model)));
+showWomanModel('smooth_female_casual');
 const clothGroup=new THREE.Group();mannequin.add(clothGroup);
 const skinMat=new THREE.MeshStandardMaterial({color:'#b98265',roughness:.72});
 const darkMat=new THREE.MeshStandardMaterial({color:'#292631',roughness:.9});
