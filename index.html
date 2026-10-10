@@ -1,178 +1,122 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D Fitness App</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #111;
-            color: #fff;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        #ui-container {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.85);
-            padding: 15px;
-            border-radius: 20px;
-            text-align: center;
-            width: 85%;
-            max-width: 400px;
-            z-index: 10;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        h1 {
-            font-size: 16px;
-            margin: 0 0 5px 0;
-            color: #00ffcc;
-            text-transform: uppercase;
-        }
-        p {
-            margin: 0 0 12px 0;
-            font-size: 11px;
-            color: #aaa;
-        }
-        .btn-group {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-        }
-        button {
-            background: #222;
-            color: #fff;
-            border: 2px solid #00ffcc;
-            padding: 12px 8px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            flex: 1;
-            font-size: 12px;
-            -webkit-tap-highlight-color: transparent;
-        }
-        button:active {
-            background: #00ffcc;
-            color: #000;
-        }
-        #canvas-container {
-            width: 100vw;
-            height: 100vh;
-        }
-        #loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 18px;
-            color: #00ffcc;
-            font-weight: bold;
-            z-index: 5;
-        }
-    </style>
-    <script src="https://cloudflare.com"></script>
-    <script src="https://jsdelivr.net"></script>
-    <script src="https://jsdelivr.net"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#111019">
+<title>Outfit Studio 3D</title>
+<style>
+:root{color-scheme:dark;--bg:#111019;--panel:#1b1925;--line:#343041;--accent:#d7ff63;--muted:#aaa6b8}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:#f8f7fb;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+#stage{position:fixed;inset:0}canvas{display:block;width:100%;height:100%;touch-action:none}
+.topbar{position:fixed;top:0;left:0;right:0;padding:calc(14px + env(safe-area-inset-top)) 18px 18px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;background:linear-gradient(#111019eF,transparent)}
+.brand{font-weight:900;letter-spacing:.08em;font-size:13px}.brand span{color:var(--accent)}.tag{font-size:11px;color:var(--muted);border:1px solid #ffffff20;border-radius:30px;padding:7px 10px;background:#191722b8}
+.panel{position:fixed;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom));max-width:620px;margin:auto;background:#1b1925f2;border:1px solid #ffffff18;border-radius:24px;padding:16px;box-shadow:0 18px 70px #0008;backdrop-filter:blur(18px);max-height:64vh;overflow:auto}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.eyebrow{font-size:10px;color:var(--accent);font-weight:800;letter-spacing:.16em;text-transform:uppercase}.title{font-size:20px;font-weight:850;margin-top:3px}.hint{font-size:11px;color:var(--muted)}
+.section{margin-top:13px}.label{font-size:11px;color:#bdb8ca;margin-bottom:8px;font-weight:700;display:block}
+.choices{display:flex;gap:8px;overflow-x:auto;padding:1px 0 4px}.choice{flex:0 0 auto;min-width:82px;border:1px solid var(--line);border-radius:13px;background:#24212f;color:#f7f4ff;padding:10px 12px;font-size:12px;font-weight:750}.choice.active{border-color:var(--accent);background:#d7ff6318;color:var(--accent)}
+.colors{display:flex;gap:11px;align-items:center;flex-wrap:wrap}.swatch{width:32px;height:32px;border-radius:50%;border:3px solid transparent;box-shadow:0 0 0 1px #ffffff30}.swatch.active{outline:2px solid var(--accent);outline-offset:3px}
+.actions{display:flex;gap:8px;margin-top:14px}.action{flex:1;border:0;border-radius:13px;padding:13px 10px;font-weight:850;font-size:12px;background:var(--accent);color:#171a0c}.action.secondary{background:#2a2735;color:#fff;border:1px solid #ffffff17}
+#loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:9;color:var(--accent);font-weight:800}
+@media(min-width:760px){.panel{left:auto;right:24px;bottom:24px;width:360px;max-height:calc(100vh - 120px)}.topbar{padding-left:26px;padding-right:26px}.title{font-size:22px}}
+button{cursor:pointer;touch-action:manipulation}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
 </head>
 <body>
+<div id="loading">OUTFIT STUDIO · WIRD GELADEN …</div>
+<div id="stage"></div>
+<header class="topbar"><div class="brand">OUTFIT <span>STUDIO</span> / 3D</div><div class="tag">360° · INTERAKTIV</div></header>
+<section class="panel">
+ <div class="panel-head"><div><div class="eyebrow">Dein Look, dein Stil</div><div class="title" id="lookName">Sport Essentials</div></div><div class="hint">3D Vorschau</div></div>
+ <div class="section"><span class="label">OUTFIT-STIL</span><div class="choices" id="styles">
+  <button class="choice active" data-style="sport">🏃 Sport</button><button class="choice" data-style="casual">👕 Casual</button><button class="choice" data-style="elegant">🧥 Elegant</button><button class="choice" data-style="street">🧢 Streetwear</button>
+ </div></div>
+ <div class="section"><span class="label">OBERTEIL-FARBE</span><div class="colors" id="topColors"></div></div>
+ <div class="section"><span class="label">HOSE-FARBE</span><div class="colors" id="bottomColors"></div></div>
+ <div class="actions"><button class="action" id="randomBtn">✦ Look mischen</button><button class="action secondary" id="resetBtn">↺ Zurücksetzen</button></div>
+ <div class="hint" style="text-align:center;margin-top:10px">Mit einem Finger drehen · Mit zwei Fingern zoomen</div>
+</section>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    <div id="loading">Lade 3D Android-App...</div>
-    <div id="canvas-container"></div>
-
-    <div id="ui-container">
-        <h1>Outfit wechseln</h1>
-        <p>Mit dem Finger drehen & zoomen</p>
-        <div class="btn-group">
-            <button onclick="changeOutfitColor(0x3a3d40)">Anthrazit</button>
-            <button onclick="changeOutfitColor(0xff4444)">Sport-Rot</button>
-            <button onclick="changeOutfitColor(0xaec6cf)">Pastell-Blau</button>
-        </div>
-    </div>
-
-    <script>
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x141419);
-
-        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 1.2, 2.8);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Akkuschonend für Handys
-        renderer.shadowMap.enabled = true;
-        container.appendChild(renderer.domElement);
-
-        // Touch-Steuerung für Android
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.08;
-        controls.minDistance = 1.2;
-        controls.maxDistance = 4;
-        controls.target.set(0, 1, 0);
-
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-        scene.add(ambientLight);
-
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
-        dirLight.position.set(5, 10, 5);
-        scene.add(dirLight);
-
-        let clothingMeshes = [];
-        const loader = new THREE.GLTFLoader();
-
-        loader.load(
-            'https://githubusercontent.com', // Ein funktionierendes, sportliches Standard-Testmodell
-            function (gltf) {
-                const model = gltf.scene;
-                model.scale.set(0.65, 0.65, 0.65);
-                model.position.set(0, 0, 0);
-                scene.add(model);
-
-                document.getElementById('loading').style.display = 'none';
-
-                model.traverse((child) => {
-                    if (child.isMesh) {
-                        clothingMeshes.push(child);
-                    }
-                });
-                changeOutfitColor(0x3a3d40);
-            },
-            undefined,
-            function (error) {
-                document.getElementById('loading').innerText = 'Netzwerkfehler beim Laden.';
-            }
-        );
-
-        function changeOutfitColor(hexColor) {
-            clothingMeshes.forEach(mesh => {
-                mesh.material = new THREE.MeshStandardMaterial({
-                    color: hexColor,
-                    roughness: 0.6,
-                    skinning: true
-                });
-            });
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
-</body>
-</html>
+const stage=document.querySelector('#stage');
+const scene=new THREE.Scene();scene.background=new THREE.Color('#111019');scene.fog=new THREE.Fog('#111019',7,18);
+const camera=new THREE.PerspectiveCamera(36,innerWidth/innerHeight,.1,100);camera.position.set(0,2.05,7.5);
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;stage.appendChild(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,1.3,0);controls.enableDamping=true;controls.minDistance=4.5;controls.maxDistance=10;controls.minPolarAngle=.35;controls.maxPolarAngle=Math.PI*.82;controls.enablePan=false;
+scene.add(new THREE.HemisphereLight(0xdedaff,0x383044,2));
+const key=new THREE.DirectionalLight(0xfff0db,3.2);key.position.set(4,7,5);key.castShadow=true;key.shadow.mapSize.set(1024,1024);scene.add(key);
+const fill=new THREE.PointLight(0xb8a2ff,24,12);fill.position.set(-3,3,2);scene.add(fill);
+const rim=new THREE.PointLight(0xd7ff63,18,10);rim.position.set(2,3,-3);scene.add(rim);
+const floor=new THREE.Mesh(new THREE.CircleGeometry(5,64),new THREE.MeshStandardMaterial({color:'#211e2c',roughness:.86}));floor.rotation.x=-Math.PI/2;floor.position.y=-.04;floor.receiveShadow=true;scene.add(floor);
+const ring=new THREE.Mesh(new THREE.TorusGeometry(1.15,.012,8,90),new THREE.MeshBasicMaterial({color:'#d7ff63',transparent:true,opacity:.48}));ring.rotation.x=Math.PI/2;ring.position.y=.01;ring.scale.set(1,1,1);scene.add(ring);
+const mannequin=new THREE.Group();scene.add(mannequin);
+const clothGroup=new THREE.Group();mannequin.add(clothGroup);
+const skinMat=new THREE.MeshStandardMaterial({color:'#b98265',roughness:.72});
+const darkMat=new THREE.MeshStandardMaterial({color:'#292631',roughness:.9});
+function mesh(geo,mat,parent=mannequin,pos=[0,0,0],scale=null){const m=new THREE.Mesh(geo,mat);m.position.set(...pos);if(scale)m.scale.set(...scale);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
+function capsule(radius,length,mat,parent,pos,rot=[0,0,0]){const m=mesh(new THREE.CapsuleGeometry(radius,length,5,10),mat,parent,pos);m.rotation.set(...rot);return m}
+const head=mesh(new THREE.SphereGeometry(.205,32,24),skinMat,mannequin,[0,2.48,0],[.86,1.08,.9]);
+mesh(new THREE.CylinderGeometry(.075,.085,.13,18),skinMat,mannequin,[0,2.22,0]);
+const earsL=mesh(new THREE.SphereGeometry(.045,12,12),skinMat,mannequin,[-.18,2.47,0],[.55,1,.6]);const earsR=mesh(new THREE.SphereGeometry(.045,12,12),skinMat,mannequin,[.18,2.47,0],[.55,1,.6]);
+const face=mesh(new THREE.SphereGeometry(.018,10,10),new THREE.MeshBasicMaterial({color:'#28202a'}),mannequin,[-.07,2.49,.178],[1,1,.5]);const face2=face.clone();face2.position.x=.07;mannequin.add(face2);
+capsule(.105,.42,skinMat,mannequin,[-.19,1.79,0],[0,0,-.1]);capsule(.105,.42,skinMat,mannequin,[.19,1.79,0],[0,0,.1]);
+const torso=mesh(new THREE.CylinderGeometry(.29,.23,.72,32,1),darkMat,mannequin,[0,1.78,0]);torso.scale.z=.52;
+const pelvis=mesh(new THREE.SphereGeometry(.25,24,16),darkMat,mannequin,[0,1.36,0],[1,.62,.55]);
+capsule(.105,.64,skinMat,mannequin,[-.39,1.65,0],[0,0,.2]);capsule(.105,.64,skinMat,mannequin,[.39,1.65,0],[0,0,-.2]);
+capsule(.08,.47,skinMat,mannequin,[-.46,1.13,0],[0,0,.08]);capsule(.08,.47,skinMat,mannequin,[.46,1.13,0],[0,0,-.08]);
+const handsL=mesh(new THREE.SphereGeometry(.09,16,12),skinMat,mannequin,[-.49,.83,0],[.8,1.2,.7]);const handsR=mesh(new THREE.SphereGeometry(.09,16,12),skinMat,mannequin,[.49,.83,0],[.8,1.2,.7]);
+const legL=capsule(.115,.67,darkMat,mannequin,[-.13,.75,0]);const legR=capsule(.115,.67,darkMat,mannequin,[.13,.75,0]);
+const footL=mesh(new THREE.SphereGeometry(.14,18,12),darkMat,mannequin,[-.13,.17,.09],[.8,.55,1.4]);const footR=mesh(new THREE.SphereGeometry(.14,18,12),darkMat,mannequin,[.13,.17,.09],[.8,.55,1.4]);
+const topMat=new THREE.MeshStandardMaterial({color:'#3a3d40',roughness:.72});
+const bottomMat=new THREE.MeshStandardMaterial({color:'#30313b',roughness:.82});
+const accentMat=new THREE.MeshStandardMaterial({color:'#d7ff63',roughness:.65});
+function createClothes(style){
+ while(clothGroup.children.length){const o=clothGroup.children.pop();o.geometry?.dispose();if(o.material!==topMat&&o.material!==bottomMat&&o.material!==accentMat)o.material?.dispose();}
+ const upper=style==='elegant'?new THREE.CylinderGeometry(.29,.24,.73,32):new THREE.CylinderGeometry(style==='street'?.34:.3,style==='street'?.3:.23,.72,32);
+ const shirt=mesh(upper,topMat,clothGroup,[0,1.79,0],[1,1,.58]);
+ const sleeveLen=style==='sport'?.29:style==='street'?.34:.27;
+ const sleeveRad=style==='street'?.13:.105;
+ capsule(sleeveRad,sleeveLen,topMat,clothGroup,[-.34,1.94,0],[0,0,.95]);
+ capsule(sleeveRad,sleeveLen,topMat,clothGroup,[.34,1.94,0],[0,0,-.95]);
+ if(style==='elegant'){
+  const lapelL=mesh(new THREE.BoxGeometry(.095,.39,.035),accentMat,clothGroup,[-.09,1.84,.172]);lapelL.rotation.z=-.28;
+  const lapelR=mesh(new THREE.BoxGeometry(.095,.39,.035),accentMat,clothGroup,[.09,1.84,.172]);lapelR.rotation.z=.28;
+  mesh(new THREE.BoxGeometry(.025,.35,.025),accentMat,clothGroup,[0,1.78,.176]);
+ } else if(style==='sport'){
+  mesh(new THREE.BoxGeometry(.34,.035,.018),accentMat,clothGroup,[0,1.68,.176]);
+  mesh(new THREE.BoxGeometry(.035,.29,.018),accentMat,clothGroup,[.19,1.82,.16]);
+ } else if(style==='street'){
+  mesh(new THREE.BoxGeometry(.19,.11,.025),accentMat,clothGroup,[0,1.66,.18]);
+  capsule(.06,.22,topMat,clothGroup,[0,2.19,0]);
+ }
+ const pantsGeo=new THREE.CylinderGeometry(style==='street'?.15:.12,.11,style==='street'?.72:.77,24);
+ const p1=mesh(pantsGeo,bottomMat,clothGroup,[-.13,.76,0],[1,1,.95]);const p2=mesh(pantsGeo,bottomMat,clothGroup,[.13,.76,0],[1,1,.95]);
+ mesh(new THREE.BoxGeometry(.39,.12,.2),bottomMat,clothGroup,[0,1.34,0]);
+ if(style==='sport'){
+  mesh(new THREE.BoxGeometry(.025,.54,.012),accentMat,clothGroup,[-.22,.77,.112]);
+  mesh(new THREE.BoxGeometry(.025,.54,.012),accentMat,clothGroup,[.22,.77,.112]);
+ }
+ if(style==='elegant'){
+  mesh(new THREE.BoxGeometry(.12,.06,.025),accentMat,clothGroup,[.12,1.94,.17]);
+ }
+}
+const topPalette=[['Anthrazit','#3a3d40'],['Rot','#e34e5b'],['Blau','#7daed4'],['Creme','#e8dfcf'],['Schwarz','#24232b'],['Grün','#527c68'],['Violett','#8b75c8']];
+const bottomPalette=[['Graphit','#30313b'],['Navy','#273b5d'],['Sand','#b8a181'],['Schwarz','#202027'],['Olive','#596044'],['Hellgrau','#a7a5b1']];
+let selectedStyle='sport',selectedTop='#3a3d40',selectedBottom='#30313b';
+function makeSwatches(id,palette,which){const root=document.getElementById(id);root.innerHTML='';palette.forEach(([name,color])=>{const b=document.createElement('button');b.className='swatch'+(color=== (which==='top'?selectedTop:selectedBottom)?' active':'');b.style.background=color;b.title=name;b.setAttribute('aria-label',name);b.addEventListener('click',()=>{if(which==='top')selectedTop=color;else selectedBottom=color;updateColors();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom')});root.appendChild(b)})}
+function updateColors(){topMat.color.set(selectedTop);bottomMat.color.set(selectedBottom);document.querySelectorAll('#styles .choice').forEach(b=>b.classList.toggle('active',b.dataset.style===selectedStyle));}
+function setStyle(s){selectedStyle=s;const names={sport:'Sport Essentials',casual:'Everyday Casual',elegant:'Modern Tailoring',street:'Streetwear Edit'};document.getElementById('lookName').textContent=names[s];createClothes(s);updateColors();}
+document.querySelectorAll('#styles .choice').forEach(b=>b.addEventListener('click',()=>setStyle(b.dataset.style)));
+document.getElementById('randomBtn').addEventListener('click',()=>{const styles=['sport','casual','elegant','street'];setStyle(styles[Math.floor(Math.random()*styles.length)]);selectedTop=topPalette[Math.floor(Math.random()*topPalette.length)][1];selectedBottom=bottomPalette[Math.floor(Math.random()*bottomPalette.length)][1];updateColors();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom')});
+document.getElementById('resetBtn').addEventListener('click',()=>{selectedTop='#3a3d40';selectedBottom='#30313b';setStyle('sport');camera.position.set(0,2.05,7.5);controls.target.set(0,1.3,0);controls.update();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom')});
+createClothes('sport');updateColors();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom');
+window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+function animate(){requestAnimationFrame(animate);controls.update();ring.rotation.z+=.0015;renderer.render(scene,camera)}animate();
+document.getElementById('loading').style.display='none';
+</script>
+</body></html>
