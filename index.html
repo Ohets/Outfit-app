@@ -42,6 +42,7 @@ button{cursor:pointer;touch-action:manipulation}
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const stage=document.querySelector('#stage');
 const scene=new THREE.Scene();scene.background=new THREE.Color('#111019');scene.fog=new THREE.Fog('#111019',7,18);
@@ -55,6 +56,28 @@ const rim=new THREE.PointLight(0xd7ff63,18,10);rim.position.set(2,3,-3);scene.ad
 const floor=new THREE.Mesh(new THREE.CircleGeometry(5,64),new THREE.MeshStandardMaterial({color:'#211e2c',roughness:.86}));floor.rotation.x=-Math.PI/2;floor.position.y=-.04;floor.receiveShadow=true;scene.add(floor);
 const ring=new THREE.Mesh(new THREE.TorusGeometry(1.15,.012,8,90),new THREE.MeshBasicMaterial({color:'#d7ff63',transparent:true,opacity:.48}));ring.rotation.x=Math.PI/2;ring.position.y=.01;ring.scale.set(1,1,1);scene.add(ring);
 const mannequin=new THREE.Group();scene.add(mannequin);
+let glbWoman=null;
+const womanLoader=new GLTFLoader();
+// Public-domain/CC0 GLB model from Innerscene (Priya, athletic woman).
+const womanModelUrl='https://www.innerscene.com/api/library/priya-3d-person-woman-athletic-walking-bf61042b/download';
+womanLoader.load(womanModelUrl,(gltf)=>{
+  glbWoman=gltf.scene;
+  const box=new THREE.Box3().setFromObject(glbWoman);
+  const size=box.getSize(new THREE.Vector3());
+  const center=box.getCenter(new THREE.Vector3());
+  const targetHeight=2.55;
+  glbWoman.scale.setScalar(targetHeight/Math.max(size.y,0.001));
+  glbWoman.position.x=-center.x*glbWoman.scale.x;
+  glbWoman.position.z=-center.z*glbWoman.scale.z;
+  glbWoman.position.y=-box.min.y*glbWoman.scale.y;
+  glbWoman.traverse((obj)=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=true;}});
+  scene.add(glbWoman);
+  mannequin.visible=false;
+  document.getElementById('loading').style.display='none';
+},undefined,(error)=>{
+  console.warn('GLB-Frau konnte nicht geladen werden; nutze die integrierte 3D-Figur.',error);
+  document.getElementById('loading').style.display='none';
+});
 const clothGroup=new THREE.Group();mannequin.add(clothGroup);
 const skinMat=new THREE.MeshStandardMaterial({color:'#b98265',roughness:.72});
 const darkMat=new THREE.MeshStandardMaterial({color:'#292631',roughness:.9});
@@ -117,6 +140,6 @@ document.getElementById('resetBtn').addEventListener('click',()=>{selectedTop='#
 createClothes('sport');updateColors();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom');
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 function animate(){requestAnimationFrame(animate);controls.update();ring.rotation.z+=.0015;renderer.render(scene,camera)}animate();
-document.getElementById('loading').style.display='none';
+// Die Ladeanzeige wird ausgeblendet, sobald GLB geladen ist oder der Fallback greift.
 </script>
 </body></html>
