@@ -9,15 +9,15 @@ Eine mobilefreundliche 3D-Outfit-Vorschau direkt im Browser. Die App läuft als 
 - Vier Outfit-Stile und Farbauswahl für die integrierte Fallback-Figur
 - Zufällige Outfit-Kombination und Zurücksetzen
 - Responsive Oberfläche für Smartphones und Desktop
-- Integrierte einfache 3D-Figur als Fallback, falls das externe GLB nicht geladen werden kann
+- Integrierte einfache 3D-Figur als Fallback, falls das lokale GLB nicht geladen werden kann
 
 ## Starten
 
-Öffne `index.html` in einem Browser mit Internetverbindung. Three.js und OrbitControls werden über jsDelivr geladen. Das weibliche GLB-Modell wird direkt über die Raw-Datei des öffentlichen GitHub-Repositories `Papyszoo/CC0-Public-Domain-Models` geladen.
+Öffne die Website über GitHub Pages oder einen lokalen Webserver. Three.js und OrbitControls werden über jsDelivr geladen. Das weibliche GLB-Modell liegt direkt im Projekt unter `models/smooth_female_casual.glb` und wird relativ aus diesem Repository geladen.
 
 ## Modelllizenz
 
-Das verwendete Modell `smooth_female_casual.glb` stammt aus dem Repository [Papyszoo/CC0-Public-Domain-Models](https://github.com/Papyszoo/CC0-Public-Domain-Models), das die enthaltenen Assets als CC0 1.0/Public Domain ausweist. Modellpfad: https://github.com/Papyszoo/CC0-Public-Domain-Models/tree/main/packs/quaternius-animatedwomen/models/smooth_female_casual. Die GLB-Datei wird aktuell von GitHub geladen und noch nicht als Datei in dieses Outfit-app-Repository kopiert.
+Das verwendete Modell `smooth_female_casual.glb` stammt aus dem Repository [Papyszoo/CC0-Public-Domain-Models](https://github.com/Papyszoo/CC0-Public-Domain-Models), das die enthaltenen Assets als CC0 1.0/Public Domain ausweist. Modellpfad: https://github.com/Papyszoo/CC0-Public-Domain-Models/tree/main/packs/quaternius-animatedwomen/models/smooth_female_casual. Eine Kopie der GLB-Datei liegt in diesem Projekt unter `models/smooth_female_casual.glb`.
 
 ## GitHub Pages aktivieren
 
@@ -28,4 +28,4 @@ Das verwendete Modell `smooth_female_casual.glb` stammt aus dem Repository [Papy
 
 ## Hinweis
 
-Die 3D-Bibliothek und das GLB-Modell werden online geladen. Für das Modell wird eine Raw-URL von GitHub verwendet. Für den Start ist deshalb eine Internetverbindung erforderlich. Die App speichert keine persönlichen Daten und benötigt kein Konto.
+Die 3D-Bibliothek wird online über jsDelivr geladen. Die GLB-Datei ist im Repository enthalten; für Three.js und OrbitControls wird weiterhin eine Internetverbindung benötigt. Die App speichert keine persönlichen Daten und benötigt kein Konto.
