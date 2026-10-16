@@ -32,7 +32,7 @@ button{cursor:pointer;touch-action:manipulation}
 <section class="panel">
  <div class="panel-head"><div><div class="eyebrow">Dein Look, dein Stil</div><div class="title" id="lookName">Sport Essentials</div></div><div class="hint">3D Vorschau</div></div>
  <div class="section"><span class="label">WEIBLICHES 3D-MODELL</span><div class="choices" id="models">
-  <button class="choice active" data-model="smooth_female_casual">✨ Casual</button><button class="choice" data-model="female_dress">👗 Kleid</button><button class="choice" data-model="female_alternative">🌟 Alternative</button><button class="choice" data-model="female_tank_top">🏖️ Tanktop</button><button class="choice" data-model="photo_fitness">💪 Fitness-Model</button>
+  <button class="choice active" data-model="smooth_female_casual">✨ Casual</button><button class="choice" data-model="female_dress">👗 Kleid</button><button class="choice" data-model="female_alternative">🌟 Alternative</button><button class="choice" data-model="female_tank_top">🏖️ Tanktop</button><button class="choice" data-model="photo_fitness">💪 Fitness-Model</button><button class="choice" data-model="nude_mannequin">🧍 Natürliches Basismodell</button>
  </div></div>
  <div class="section"><span class="label">OUTFIT-STIL</span><div class="choices" id="styles">
   <button class="choice active" data-style="sport">🏃 Sport</button><button class="choice" data-style="casual">👕 Casual</button><button class="choice" data-style="elegant">🧥 Elegant</button><button class="choice" data-style="street">🧢 Streetwear</button><button class="choice" data-style="bikini">👙 Bikini</button>
@@ -71,11 +71,24 @@ const womanModels={
 const loadedWomanModels={};
 let activeModelKey='smooth_female_casual';
 function showWomanModel(modelKey){
+  if(modelKey==='nude_mannequin'){
+    activeModelKey=modelKey;
+    document.querySelectorAll('#models .choice').forEach(b=>b.classList.toggle('active',b.dataset.model===modelKey));
+    if(glbWoman) glbWoman.visible=false;
+    mannequin.visible=true;
+    setNudeBody(true);
+    clothGroup.visible=false;
+    document.getElementById('lookName').textContent='Natürliches Basismodell';
+    document.getElementById('loading').style.display='none';
+    return;
+  }
   if(modelKey==='photo_fitness'){
     activeModelKey=modelKey;
     document.querySelectorAll('#models .choice').forEach(b=>b.classList.toggle('active',b.dataset.model===modelKey));
     if(glbWoman) glbWoman.visible=false;
     mannequin.visible=true;
+    setNudeBody(false);
+    clothGroup.visible=true;
     document.getElementById('lookName').textContent='Fitness Look';
     document.getElementById('loading').style.display='none';
     createClothes(selectedStyle);
@@ -136,6 +149,7 @@ capsule(.08,.47,skinMat,mannequin,[-.46,1.13,0],[0,0,.08]);capsule(.08,.47,skinM
 const handsL=mesh(new THREE.SphereGeometry(.09,16,12),skinMat,mannequin,[-.49,.83,0],[.8,1.2,.7]);const handsR=mesh(new THREE.SphereGeometry(.09,16,12),skinMat,mannequin,[.49,.83,0],[.8,1.2,.7]);
 const legL=capsule(.115,.67,darkMat,mannequin,[-.13,.75,0]);const legR=capsule(.115,.67,darkMat,mannequin,[.13,.75,0]);
 const footL=mesh(new THREE.SphereGeometry(.14,18,12),darkMat,mannequin,[-.13,.17,.09],[.8,.55,1.4]);const footR=mesh(new THREE.SphereGeometry(.14,18,12),darkMat,mannequin,[.13,.17,.09],[.8,.55,1.4]);
+function setNudeBody(enabled){const material=enabled?skinMat:darkMat;[torso,pelvis,legL,legR,footL,footR].forEach(part=>part.material=material);}
 const topMat=new THREE.MeshStandardMaterial({color:'#3a3d40',roughness:.72});
 const bottomMat=new THREE.MeshStandardMaterial({color:'#30313b',roughness:.82});
 const accentMat=new THREE.MeshStandardMaterial({color:'#d7ff63',roughness:.65});
@@ -187,7 +201,7 @@ const bottomPalette=[['Graphit','#30313b'],['Navy','#273b5d'],['Sand','#b8a181']
 let selectedStyle='sport',selectedTop='#3a3d40',selectedBottom='#30313b';
 function makeSwatches(id,palette,which){const root=document.getElementById(id);root.innerHTML='';palette.forEach(([name,color])=>{const b=document.createElement('button');b.className='swatch'+(color=== (which==='top'?selectedTop:selectedBottom)?' active':'');b.style.background=color;b.title=name;b.setAttribute('aria-label',name);b.addEventListener('click',()=>{if(which==='top')selectedTop=color;else selectedBottom=color;updateColors();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom')});root.appendChild(b)})}
 function updateColors(){topMat.color.set(selectedTop);bottomMat.color.set(selectedBottom);document.querySelectorAll('#styles .choice').forEach(b=>b.classList.toggle('active',b.dataset.style===selectedStyle));}
-function setStyle(s){selectedStyle=s;const names={sport:'Sport Essentials',casual:'Everyday Casual',elegant:'Modern Tailoring',street:'Streetwear Edit',bikini:'Summer Bikini'};document.getElementById('lookName').textContent=names[s]||'Fitness Look';if(activeModelKey==='photo_fitness'||s==='bikini'){if(glbWoman)glbWoman.visible=false;mannequin.visible=true;}else{if(glbWoman)glbWoman.visible=true;mannequin.visible=false;}createClothes(s);updateColors();}
+function setStyle(s){selectedStyle=s;const names={sport:'Sport Essentials',casual:'Everyday Casual',elegant:'Modern Tailoring',street:'Streetwear Edit',bikini:'Summer Bikini'};document.getElementById('lookName').textContent=names[s]||'Fitness Look';if(activeModelKey==='photo_fitness'||activeModelKey==='nude_mannequin'||s==='bikini'){if(glbWoman)glbWoman.visible=false;mannequin.visible=true;setNudeBody(activeModelKey==='nude_mannequin');clothGroup.visible=true;}else{if(glbWoman)glbWoman.visible=true;mannequin.visible=false;setNudeBody(false);}createClothes(s);updateColors();}
 document.querySelectorAll('#styles .choice').forEach(b=>b.addEventListener('click',()=>setStyle(b.dataset.style)));
 document.getElementById('randomBtn').addEventListener('click',()=>{const styles=['sport','casual','elegant','street'];setStyle(styles[Math.floor(Math.random()*styles.length)]);selectedTop=topPalette[Math.floor(Math.random()*topPalette.length)][1];selectedBottom=bottomPalette[Math.floor(Math.random()*bottomPalette.length)][1];updateColors();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom')});
 document.getElementById('resetBtn').addEventListener('click',()=>{selectedTop='#3a3d40';selectedBottom='#30313b';setStyle('sport');camera.position.set(0,2.05,7.5);controls.target.set(0,1.3,0);controls.update();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom')});
