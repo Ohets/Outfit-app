@@ -106,7 +106,7 @@ function showWomanModel(modelKey){
     const box=new THREE.Box3().setFromObject(glbWoman);
     const size=box.getSize(new THREE.Vector3());
     const center=box.getCenter(new THREE.Vector3());
-    const targetHeight=modelKey==='female_nude_glb'?1.275:2.55;
+    const targetHeight=modelKey==='female_nude_glb'?0.6375:2.55;
     glbWoman.scale.setScalar(targetHeight/Math.max(size.y,0.001));
     glbWoman.position.x=-center.x*glbWoman.scale.x;
     glbWoman.position.z=-center.z*glbWoman.scale.z;
