@@ -32,7 +32,7 @@ button{cursor:pointer;touch-action:manipulation}
 <section class="panel">
  <div class="panel-head"><div><div class="eyebrow">Dein Look, dein Stil</div><div class="title" id="lookName">Sport Essentials</div></div><div class="hint">3D Vorschau</div></div>
  <div class="section"><span class="label">WEIBLICHES 3D-MODELL</span><div class="choices" id="models">
-  <button class="choice active" data-model="smooth_female_casual">✨ Casual</button><button class="choice" data-model="female_dress">👗 Kleid</button><button class="choice" data-model="female_alternative">🌟 Alternative</button><button class="choice" data-model="female_tank_top">🏖️ Tanktop</button><button class="choice" data-model="photo_fitness">💪 Fitness-Model</button><button class="choice" data-model="nude_mannequin">🧍 Natürliches Basismodell</button>
+  <button class="choice active" data-model="smooth_female_casual">✨ Casual</button><button class="choice" data-model="female_dress">👗 Kleid</button><button class="choice" data-model="female_alternative">🌟 Alternative</button><button class="choice" data-model="female_tank_top">🏖️ Tanktop</button><button class="choice" data-model="photo_fitness">💪 Fitness-Model</button><button class="choice" data-model="nude_mannequin">🧍 Natürliches Basismodell</button><button class="choice" data-model="female_nude_glb">🌿 Natürliches Frauenmodell (GLB)</button>
  </div></div>
  <div class="section"><span class="label">OUTFIT-STIL</span><div class="choices" id="styles">
   <button class="choice active" data-style="sport">🏃 Sport</button><button class="choice" data-style="casual">👕 Casual</button><button class="choice" data-style="elegant">🧥 Elegant</button><button class="choice" data-style="street">🧢 Streetwear</button><button class="choice" data-style="bikini">👙 Bikini</button>
@@ -66,7 +66,8 @@ const womanModels={
   smooth_female_casual:'./models/smooth_female_casual.glb',
   female_dress:'./models/female_dress.glb',
   female_alternative:'./models/female_alternative.glb',
-  female_tank_top:'./models/female_tank_top.glb'
+  female_tank_top:'./models/female_tank_top.glb',
+  female_nude_glb:'https://cdn.jsdelivr.net/gh/decentraland/godot-explorer@a630a115dbbf5680154b8261ffce8955ca193ad0/godot/assets/avatar/ghost_body_female.glb'
 };
 const loadedWomanModels={};
 let activeModelKey='smooth_female_casual';
@@ -113,6 +114,7 @@ function showWomanModel(modelKey){
     glbWoman.traverse(obj=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=true;}});
     scene.add(glbWoman);
     mannequin.visible=false;
+    if(modelKey==='female_nude_glb') document.getElementById('lookName').textContent='Natürliches Frauenmodell';
     document.getElementById('loading').style.display='none';
   };
   if(loadedWomanModels[modelKey]){applyModel(loadedWomanModels[modelKey]);return;}
