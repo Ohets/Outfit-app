@@ -12,7 +12,7 @@
 .topbar{position:fixed;top:0;left:0;right:0;padding:calc(14px + env(safe-area-inset-top)) 18px 18px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;background:linear-gradient(#111019eF,transparent)}
 .brand{font-weight:900;letter-spacing:.08em;font-size:13px}.brand span{color:var(--accent)}.tag{font-size:11px;color:var(--muted);border:1px solid #ffffff20;border-radius:30px;padding:7px 10px;background:#191722b8}
 .panel{position:fixed;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom));max-width:620px;margin:auto;background:#1b1925f2;border:1px solid #ffffff18;border-radius:24px;padding:16px;box-shadow:0 18px 70px #0008;backdrop-filter:blur(18px);max-height:64vh;overflow:auto}
-.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.eyebrow{font-size:10px;color:var(--accent);font-weight:800;letter-spacing:.16em;text-transform:uppercase}.title{font-size:20px;font-weight:850;margin-top:3px}.hint{font-size:11px;color:var(--muted)}
+.panel.is-hidden{display:none}.panel-toggle{position:fixed;z-index:5;top:calc(68px + env(safe-area-inset-top));right:14px;border:1px solid #ffffff28;border-radius:14px;padding:11px 14px;background:#d7ff63;color:#171a0c;font-weight:850;font-size:12px;box-shadow:0 8px 26px #0007}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.eyebrow{font-size:10px;color:var(--accent);font-weight:800;letter-spacing:.16em;text-transform:uppercase}.title{font-size:20px;font-weight:850;margin-top:3px}.hint{font-size:11px;color:var(--muted)}
 .section{margin-top:13px}.label{font-size:11px;color:#bdb8ca;margin-bottom:8px;font-weight:700;display:block}
 .choices{display:flex;gap:8px;overflow-x:auto;padding:1px 0 4px}.choice{flex:0 0 auto;min-width:82px;border:1px solid var(--line);border-radius:13px;background:#24212f;color:#f7f4ff;padding:10px 12px;font-size:12px;font-weight:750}.choice.active{border-color:var(--accent);background:#d7ff6318;color:var(--accent)}
 .colors{display:flex;gap:11px;align-items:center;flex-wrap:wrap}.swatch{width:32px;height:32px;border-radius:50%;border:3px solid transparent;box-shadow:0 0 0 1px #ffffff30}.swatch.active{outline:2px solid var(--accent);outline-offset:3px}
@@ -29,7 +29,7 @@ button{cursor:pointer;touch-action:manipulation}
 <div id="loading">OUTFIT STUDIO · WIRD GELADEN …</div>
 <div id="stage"></div>
 <header class="topbar"><div class="brand">OUTFIT <span>STUDIO</span> / 3D</div><div class="tag">360° · INTERAKTIV</div></header>
-<section class="panel">
+<section class="panel" id="selectionPanel">
  <div class="panel-head"><div><div class="eyebrow">Dein Look, dein Stil</div><div class="title" id="lookName">Sport Essentials</div></div><div class="hint">3D Vorschau</div></div>
  <div class="section"><span class="label">WEIBLICHES 3D-MODELL</span><div class="choices" id="models">
   <button class="choice active" data-model="smooth_female_casual">✨ Casual</button><button class="choice" data-model="female_dress">👗 Kleid</button><button class="choice" data-model="female_alternative">🌟 Alternative</button><button class="choice" data-model="female_tank_top">🏖️ Tanktop</button><button class="choice" data-model="photo_fitness">💪 Fitness-Model</button><button class="choice" data-model="nude_mannequin">🧍 Natürliches Basismodell</button><button class="choice" data-model="female_nude_glb">🌿 Natürliches Frauenmodell (GLB)</button><button class="choice" data-model="new_female_model">🆕 Neues 3D-Modell</button>
@@ -42,12 +42,21 @@ button{cursor:pointer;touch-action:manipulation}
  <div class="actions"><button class="action" id="randomBtn">✦ Look mischen</button><button class="action secondary" id="resetBtn">↺ Zurücksetzen</button></div>
  <div class="hint" style="text-align:center;margin-top:10px">Mit einem Finger drehen · Mit zwei Fingern zoomen</div>
 </section>
+<button class="panel-toggle" id="panelToggle" type="button" aria-controls="selectionPanel" aria-expanded="true">✕ Auswahl schließen</button>
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const stage=document.querySelector('#stage');
+const selectionPanel=document.getElementById('selectionPanel');
+const panelToggle=document.getElementById('panelToggle');
+panelToggle.addEventListener('click',()=>{
+  const isOpen=!selectionPanel.classList.contains('is-hidden');
+  selectionPanel.classList.toggle('is-hidden',isOpen);
+  panelToggle.textContent=isOpen?'☰ Auswahl öffnen':'✕ Auswahl schließen';
+  panelToggle.setAttribute('aria-expanded',String(!isOpen));
+});
 const scene=new THREE.Scene();scene.background=new THREE.Color('#111019');scene.fog=new THREE.Fog('#111019',7,18);
 const camera=new THREE.PerspectiveCamera(36,innerWidth/innerHeight,.1,100);camera.position.set(0,2.05,7.5);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;stage.appendChild(renderer.domElement);
