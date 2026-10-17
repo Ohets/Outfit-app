@@ -60,6 +60,11 @@ const floor=new THREE.Mesh(new THREE.CircleGeometry(5,64),new THREE.MeshStandard
 const ring=new THREE.Mesh(new THREE.TorusGeometry(1.15,.012,8,90),new THREE.MeshBasicMaterial({color:'#d7ff63',transparent:true,opacity:.48}));ring.rotation.x=Math.PI/2;ring.position.y=.01;ring.scale.set(1,1,1);scene.add(ring);
 const mannequin=new THREE.Group();scene.add(mannequin);
 let glbWoman=null;
+let newModelOutfitGroup=null;
+let newModelBounds=null;
+const newModelTopMat=new THREE.MeshStandardMaterial({color:'#3a3d40',roughness:.72,side:THREE.DoubleSide});
+const newModelBottomMat=new THREE.MeshStandardMaterial({color:'#30313b',roughness:.82,side:THREE.DoubleSide});
+const newModelAccentMat=new THREE.MeshStandardMaterial({color:'#d7ff63',roughness:.65,side:THREE.DoubleSide});
 const womanLoader=new GLTFLoader();
 // CC0 female GLB models bundled locally in this repository.
 const womanModels={
@@ -107,6 +112,7 @@ function showWomanModel(modelKey){
     const box=new THREE.Box3().setFromObject(glbWoman);
     const size=box.getSize(new THREE.Vector3());
     const center=box.getCenter(new THREE.Vector3());
+    newModelBounds=modelKey==='new_female_model'?{size:size.clone(),center:center.clone()}:null;
     const targetHeight=modelKey==='female_nude_glb'?0.6375:2.55;
     glbWoman.scale.setScalar(targetHeight/Math.max(size.y,0.001));
     glbWoman.position.x=-center.x*glbWoman.scale.x;
@@ -115,8 +121,11 @@ function showWomanModel(modelKey){
     glbWoman.traverse(obj=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=true;}});
     scene.add(glbWoman);
     mannequin.visible=false;
+    if(modelKey==='new_female_model'){
+      document.getElementById('lookName').textContent='Neues 3D-Modell';
+      createNewModelOutfit(selectedStyle);
+    }
     if(modelKey==='female_nude_glb') document.getElementById('lookName').textContent='Natürliches Frauenmodell';
-    if(modelKey==='new_female_model') document.getElementById('lookName').textContent='Neues 3D-Modell';
     document.getElementById('loading').style.display='none';
   };
   if(loadedWomanModels[modelKey]){applyModel(loadedWomanModels[modelKey]);return;}
@@ -200,12 +209,90 @@ function createClothes(style){
   mesh(new THREE.BoxGeometry(.12,.06,.025),accentMat,clothGroup,[.12,1.94,.17]);
  }
 }
+
+// Simple garment overlays fitted to the uploaded model's own proportions.
+function createNewModelOutfit(style){
+ if(!glbWoman||activeModelKey!=='new_female_model'||!newModelBounds) return;
+ if(newModelOutfitGroup){glbWoman.remove(newModelOutfitGroup);newModelOutfitGroup=null;}
+ const {size,center}=newModelBounds;
+ const group=new THREE.Group();
+ group.position.set(center.x,0,center.z);
+ newModelOutfitGroup=group;
+ glbWoman.add(group);
+ const garment=(material,rings,offsetX=0)=>{
+   const segments=40,positions=[],indices=[];
+   rings.forEach(([y,rx,rz],ri)=>{
+     for(let i=0;i<segments;i++){
+       const a=i/segments*Math.PI*2;
+       positions.push(offsetX+Math.cos(a)*size.x*rx,y*size.y,Math.sin(a)*size.z*rz);
+     }
+     if(ri>0) for(let i=0;i<segments;i++){
+       const a=(ri-1)*segments+i,b=(ri-1)*segments+(i+1)%segments,d=ri*segments+i,e=ri*segments+(i+1)%segments;
+       indices.push(a,d,b,b,d,e);
+     }
+   });
+   const geo=new THREE.BufferGeometry();
+   geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
+   geo.setIndex(indices);geo.computeVertexNormals();
+   const m=new THREE.Mesh(geo,material);m.castShadow=true;m.receiveShadow=true;group.add(m);return m;
+ };
+ const detail=(geo,mat,pos,scale,rotation=0)=>{
+   const m=new THREE.Mesh(geo,mat);m.position.set(pos[0]*size.x,pos[1]*size.y,pos[2]*size.z);
+   m.scale.set(scale[0]*size.x,scale[1]*size.y,scale[2]*size.z);m.rotation.z=rotation;
+   m.castShadow=true;m.receiveShadow=true;group.add(m);return m;
+ };
+ if(style==='bikini'){
+   detail(new THREE.SphereGeometry(1,24,16),newModelTopMat,[-.105,.665,.38],[.105,.055,.055]);
+   detail(new THREE.SphereGeometry(1,24,16),newModelTopMat,[.105,.665,.38],[.105,.055,.055]);
+   garment(newModelTopMat,[[.63,.24,.25],[.65,.29,.28]]);
+   garment(newModelBottomMat,[[.39,.27,.31],[.43,.25,.28]]);
+   return;
+ }
+ if(style==='elegant'){
+   garment(newModelTopMat,[[.49,.22,.25],[.55,.24,.27],[.68,.29,.32],[.76,.31,.31]]);
+   garment(newModelBottomMat,[[.12,.31,.32],[.24,.29,.30],[.40,.25,.28],[.49,.22,.25]]);
+   garment(newModelAccentMat,[[.70,.295,.325],[.71,.30,.33]]);
+ }else if(style==='casual'){
+   garment(newModelTopMat,[[.50,.24,.26],[.57,.26,.28],[.70,.30,.32],[.76,.32,.31]]);
+   garment(newModelBottomMat,[[.10,.23,.24],[.25,.22,.24],[.43,.25,.28],[.50,.24,.26]]);
+ }else if(style==='street'){
+   garment(newModelTopMat,[[.46,.29,.31],[.53,.31,.33],[.68,.34,.34],[.76,.34,.32]]);
+   garment(newModelBottomMat,[[.10,.25,.25],[.25,.27,.26],[.43,.28,.29],[.48,.27,.29]]);
+   garment(newModelAccentMat,[[.55,.315,.34],[.57,.32,.345]]);
+ }else{
+   garment(newModelTopMat,[[.51,.22,.25],[.58,.24,.27],[.69,.29,.31],[.75,.30,.30]]);
+   garment(newModelBottomMat,[[.10,.21,.23],[.24,.22,.24],[.43,.24,.27],[.50,.22,.25]]);
+   garment(newModelAccentMat,[[.23,.225,.245],[.24,.23,.25]]);
+ }
+}
 const topPalette=[['Anthrazit','#3a3d40'],['Rot','#e34e5b'],['Blau','#7daed4'],['Creme','#e8dfcf'],['Schwarz','#24232b'],['Grün','#527c68'],['Violett','#8b75c8']];
 const bottomPalette=[['Graphit','#30313b'],['Navy','#273b5d'],['Sand','#b8a181'],['Schwarz','#202027'],['Olive','#596044'],['Hellgrau','#a7a5b1']];
 let selectedStyle='sport',selectedTop='#3a3d40',selectedBottom='#30313b';
 function makeSwatches(id,palette,which){const root=document.getElementById(id);root.innerHTML='';palette.forEach(([name,color])=>{const b=document.createElement('button');b.className='swatch'+(color=== (which==='top'?selectedTop:selectedBottom)?' active':'');b.style.background=color;b.title=name;b.setAttribute('aria-label',name);b.addEventListener('click',()=>{if(which==='top')selectedTop=color;else selectedBottom=color;updateColors();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom')});root.appendChild(b)})}
-function updateColors(){topMat.color.set(selectedTop);bottomMat.color.set(selectedBottom);document.querySelectorAll('#styles .choice').forEach(b=>b.classList.toggle('active',b.dataset.style===selectedStyle));}
-function setStyle(s){selectedStyle=s;const names={sport:'Sport Essentials',casual:'Everyday Casual',elegant:'Modern Tailoring',street:'Streetwear Edit',bikini:'Summer Bikini'};document.getElementById('lookName').textContent=names[s]||'Fitness Look';if(activeModelKey==='photo_fitness'||activeModelKey==='nude_mannequin'||s==='bikini'){if(glbWoman)glbWoman.visible=false;mannequin.visible=true;setNudeBody(activeModelKey==='nude_mannequin');clothGroup.visible=true;}else{if(glbWoman)glbWoman.visible=true;mannequin.visible=false;setNudeBody(false);}createClothes(s);updateColors();}
+function updateColors(){topMat.color.set(selectedTop);bottomMat.color.set(selectedBottom);newModelTopMat.color.set(selectedTop);newModelBottomMat.color.set(selectedBottom);newModelAccentMat.color.set(selectedTop);document.querySelectorAll('#styles .choice').forEach(b=>b.classList.toggle('active',b.dataset.style===selectedStyle));}
+function setStyle(s){
+ selectedStyle=s;
+ const names={sport:'Sport Essentials',casual:'Everyday Casual',elegant:'Modern Tailoring',street:'Streetwear Edit',bikini:'Summer Bikini'};
+ document.getElementById('lookName').textContent=activeModelKey==='new_female_model'?'Neues 3D-Modell · '+(names[s]||'Outfit'):names[s]||'Fitness Look';
+ if(activeModelKey==='new_female_model'){
+   if(glbWoman) glbWoman.visible=true;
+   mannequin.visible=false;
+   clothGroup.visible=false;
+   setNudeBody(false);
+   createNewModelOutfit(s);
+ }else if(activeModelKey==='photo_fitness'||activeModelKey==='nude_mannequin'||s==='bikini'){
+   if(glbWoman) glbWoman.visible=false;
+   mannequin.visible=true;
+   setNudeBody(activeModelKey==='nude_mannequin');
+   clothGroup.visible=true;
+ }else{
+   if(glbWoman) glbWoman.visible=true;
+   mannequin.visible=false;
+   setNudeBody(false);
+ }
+ createClothes(s);
+ updateColors();
+}
 document.querySelectorAll('#styles .choice').forEach(b=>b.addEventListener('click',()=>setStyle(b.dataset.style)));
 document.getElementById('randomBtn').addEventListener('click',()=>{const styles=['sport','casual','elegant','street'];setStyle(styles[Math.floor(Math.random()*styles.length)]);selectedTop=topPalette[Math.floor(Math.random()*topPalette.length)][1];selectedBottom=bottomPalette[Math.floor(Math.random()*bottomPalette.length)][1];updateColors();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom')});
 document.getElementById('resetBtn').addEventListener('click',()=>{selectedTop='#3a3d40';selectedBottom='#30313b';setStyle('sport');camera.position.set(0,2.05,7.5);controls.target.set(0,1.3,0);controls.update();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom')});
