@@ -35,7 +35,7 @@ button{cursor:pointer;touch-action:manipulation}
   <button class="choice active" data-model="smooth_female_casual">✨ Casual</button><button class="choice" data-model="female_dress">👗 Kleid</button><button class="choice" data-model="female_alternative">🌟 Alternative</button><button class="choice" data-model="female_tank_top">🏖️ Tanktop</button><button class="choice" data-model="photo_fitness">💪 Fitness-Model</button><button class="choice" data-model="nude_mannequin">🧍 Natürliches Basismodell</button><button class="choice" data-model="female_nude_glb">🌿 Natürliches Frauenmodell (GLB)</button><button class="choice" data-model="new_female_model">🆕 Neues 3D-Modell</button>
  </div></div>
  <div class="section"><span class="label">OUTFIT-STIL</span><div class="choices" id="styles">
-  <button class="choice active" data-style="sport">🏃 Sport</button><button class="choice" data-style="casual">👕 Casual</button><button class="choice" data-style="elegant">🧥 Elegant</button><button class="choice" data-style="street">🧢 Streetwear</button><button class="choice" data-style="bikini">👙 Bikini</button>
+  <button class="choice active" data-style="sport">🏃 Sport</button><button class="choice" data-style="casual">👕 Casual</button><button class="choice" data-style="elegant">🧥 Elegant</button><button class="choice" data-style="street">🧢 Streetwear</button><button class="choice" data-style="bikini">👙 Bikini</button><button class="choice" data-style="underwear">🩲 Unterwäsche</button>
  </div></div>
  <div class="section"><span class="label">OBERTEIL-FARBE</span><div class="colors" id="topColors"></div></div>
  <div class="section"><span class="label">HOSE-FARBE</span><div class="colors" id="bottomColors"></div></div>
@@ -283,7 +283,7 @@ function makeSwatches(id,palette,which){const root=document.getElementById(id);r
 function updateColors(){topMat.color.set(selectedTop);bottomMat.color.set(selectedBottom);newModelTopMat.color.set(selectedTop);newModelBottomMat.color.set(selectedBottom);newModelAccentMat.color.set(selectedTop);document.querySelectorAll('#styles .choice').forEach(b=>b.classList.toggle('active',b.dataset.style===selectedStyle));}
 function setStyle(s){
  selectedStyle=s;
- const names={sport:'Sport Essentials',casual:'Everyday Casual',elegant:'Modern Tailoring',street:'Streetwear Edit',bikini:'Summer Bikini'};
+ const names={sport:'Sport Essentials',casual:'Everyday Casual',elegant:'Modern Tailoring',street:'Streetwear Edit',bikini:'Summer Bikini',underwear:'Unterwäsche'};
  document.getElementById('lookName').textContent=activeModelKey==='new_female_model'?'Neues 3D-Modell · '+(names[s]||'Outfit'):names[s]||'Fitness Look';
  if(activeModelKey==='new_female_model'){
    if(glbWoman) glbWoman.visible=true;
@@ -305,7 +305,7 @@ function setStyle(s){
  updateColors();
 }
 document.querySelectorAll('#styles .choice').forEach(b=>b.addEventListener('click',()=>setStyle(b.dataset.style)));
-document.getElementById('randomBtn').addEventListener('click',()=>{const styles=['sport','casual','elegant','street'];setStyle(styles[Math.floor(Math.random()*styles.length)]);selectedTop=topPalette[Math.floor(Math.random()*topPalette.length)][1];selectedBottom=bottomPalette[Math.floor(Math.random()*bottomPalette.length)][1];updateColors();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom')});
+document.getElementById('randomBtn').addEventListener('click',()=>{const styles=['sport','casual','elegant','street','underwear'];setStyle(styles[Math.floor(Math.random()*styles.length)]);selectedTop=topPalette[Math.floor(Math.random()*topPalette.length)][1];selectedBottom=bottomPalette[Math.floor(Math.random()*bottomPalette.length)][1];updateColors();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom')});
 document.getElementById('resetBtn').addEventListener('click',()=>{selectedTop='#3a3d40';selectedBottom='#30313b';setStyle('sport');camera.position.set(0,2.05,7.5);controls.target.set(0,1.3,0);controls.update();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom')});
 createClothes('sport');updateColors();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom');
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
