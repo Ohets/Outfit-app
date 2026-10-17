@@ -252,6 +252,13 @@ function createNewModelOutfit(style){
    m.scale.set(scale[0]*size.x,scale[1]*size.y,scale[2]*size.z);m.rotation.z=rotation;
    m.castShadow=true;m.receiveShadow=true;group.add(m);return m;
  };
+ if(style==='underwear'){
+   // A fuller bralette plus matching briefs, with an extra front panel for reliable coverage.
+   garment(newModelTopMat,[[.59,.19,.215],[.62,.225,.24],[.66,.25,.26],[.69,.25,.255]]);
+   detail(new THREE.BoxGeometry(1,1,1),newModelTopMat,[0,.665,.255],[.34,.07,.025]);
+   garment(newModelBottomMat,[[.365,.22,.245],[.39,.245,.265],[.425,.235,.255]]);
+   return;
+ }
  if(style==='bikini'){
    detail(new THREE.SphereGeometry(1,24,16),newModelTopMat,[-.105,.665,.38],[.095,.048,.05]);
    detail(new THREE.SphereGeometry(1,24,16),newModelTopMat,[.105,.665,.38],[.095,.048,.05]);
