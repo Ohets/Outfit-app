@@ -219,18 +219,29 @@ function createNewModelOutfit(style){
  group.position.set(center.x,0,center.z);
  newModelOutfitGroup=group;
  glbWoman.add(group);
- const garment=(material,rings,offsetX=0)=>{
-   const segments=40,positions=[],indices=[];
-   rings.forEach(([y,rx,rz],ri)=>{
+ // Interpolate the body-following cross sections so the clothes look smooth,
+ // and keep a small clearance from the body to reduce clipping/floating.
+ const garment=(material,inputRings)=>{
+   const rings=[];
+   for(let r=0;r<inputRings.length-1;r++){
+     const a=inputRings[r],b=inputRings[r+1];
+     for(let j=0;j<4;j++){
+       const t=j/4;
+       rings.push(a.map((v,k)=>v+(b[k]-v)*t));
+     }
+   }
+   rings.push(inputRings[inputRings.length-1]);
+   const segments=64,positions=[],indices=[];
+   rings.forEach(([y,rx,rz])=>{
      for(let i=0;i<segments;i++){
        const a=i/segments*Math.PI*2;
-       positions.push(offsetX+Math.cos(a)*size.x*rx,y*size.y,Math.sin(a)*size.z*rz);
-     }
-     if(ri>0) for(let i=0;i<segments;i++){
-       const a=(ri-1)*segments+i,b=(ri-1)*segments+(i+1)%segments,d=ri*segments+i,e=ri*segments+(i+1)%segments;
-       indices.push(a,d,b,b,d,e);
+       positions.push(Math.cos(a)*size.x*rx,y*size.y,Math.sin(a)*size.z*rz);
      }
    });
+   for(let ri=1;ri<rings.length;ri++) for(let i=0;i<segments;i++){
+     const a=(ri-1)*segments+i,b=(ri-1)*segments+(i+1)%segments,d=ri*segments+i,e=ri*segments+(i+1)%segments;
+     indices.push(a,d,b,b,d,e);
+   }
    const geo=new THREE.BufferGeometry();
    geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));
    geo.setIndex(indices);geo.computeVertexNormals();
@@ -242,27 +253,27 @@ function createNewModelOutfit(style){
    m.castShadow=true;m.receiveShadow=true;group.add(m);return m;
  };
  if(style==='bikini'){
-   detail(new THREE.SphereGeometry(1,24,16),newModelTopMat,[-.105,.665,.38],[.105,.055,.055]);
-   detail(new THREE.SphereGeometry(1,24,16),newModelTopMat,[.105,.665,.38],[.105,.055,.055]);
-   garment(newModelTopMat,[[.63,.24,.25],[.65,.29,.28]]);
-   garment(newModelBottomMat,[[.39,.27,.31],[.43,.25,.28]]);
+   detail(new THREE.SphereGeometry(1,24,16),newModelTopMat,[-.105,.665,.38],[.095,.048,.05]);
+   detail(new THREE.SphereGeometry(1,24,16),newModelTopMat,[.105,.665,.38],[.095,.048,.05]);
+   garment(newModelTopMat,[[.625,.205,.215],[.64,.235,.235],[.66,.25,.245]]);
+   garment(newModelBottomMat,[[.385,.235,.255],[.405,.245,.265],[.43,.225,.245]]);
    return;
  }
  if(style==='elegant'){
-   garment(newModelTopMat,[[.49,.22,.25],[.55,.24,.27],[.68,.29,.32],[.76,.31,.31]]);
-   garment(newModelBottomMat,[[.12,.31,.32],[.24,.29,.30],[.40,.25,.28],[.49,.22,.25]]);
-   garment(newModelAccentMat,[[.70,.295,.325],[.71,.30,.33]]);
+   garment(newModelTopMat,[[.49,.205,.225],[.55,.22,.24],[.62,.255,.275],[.69,.275,.29],[.76,.285,.275]]);
+   garment(newModelBottomMat,[[.10,.205,.215],[.22,.205,.22],[.38,.225,.245],[.49,.205,.225]]);
+   garment(newModelAccentMat,[[.70,.278,.294],[.705,.282,.298]]);
  }else if(style==='casual'){
-   garment(newModelTopMat,[[.50,.24,.26],[.57,.26,.28],[.70,.30,.32],[.76,.32,.31]]);
-   garment(newModelBottomMat,[[.10,.23,.24],[.25,.22,.24],[.43,.25,.28],[.50,.24,.26]]);
+   garment(newModelTopMat,[[.50,.215,.23],[.57,.23,.245],[.65,.265,.28],[.72,.285,.285],[.76,.285,.27]]);
+   garment(newModelBottomMat,[[.10,.205,.215],[.23,.20,.22],[.40,.225,.245],[.50,.215,.23]]);
  }else if(style==='street'){
-   garment(newModelTopMat,[[.46,.29,.31],[.53,.31,.33],[.68,.34,.34],[.76,.34,.32]]);
-   garment(newModelBottomMat,[[.10,.25,.25],[.25,.27,.26],[.43,.28,.29],[.48,.27,.29]]);
-   garment(newModelAccentMat,[[.55,.315,.34],[.57,.32,.345]]);
+   garment(newModelTopMat,[[.46,.255,.27],[.53,.27,.285],[.64,.295,.30],[.72,.30,.29],[.76,.30,.275]]);
+   garment(newModelBottomMat,[[.10,.225,.225],[.24,.235,.235],[.41,.25,.26],[.48,.245,.255]]);
+   garment(newModelAccentMat,[[.55,.275,.29],[.565,.28,.295]]);
  }else{
-   garment(newModelTopMat,[[.51,.22,.25],[.58,.24,.27],[.69,.29,.31],[.75,.30,.30]]);
-   garment(newModelBottomMat,[[.10,.21,.23],[.24,.22,.24],[.43,.24,.27],[.50,.22,.25]]);
-   garment(newModelAccentMat,[[.23,.225,.245],[.24,.23,.25]]);
+   garment(newModelTopMat,[[.51,.20,.22],[.58,.22,.24],[.66,.255,.275],[.72,.27,.28],[.75,.27,.265]]);
+   garment(newModelBottomMat,[[.10,.19,.205],[.23,.20,.22],[.40,.22,.24],[.50,.20,.22]]);
+   garment(newModelAccentMat,[[.23,.205,.225],[.24,.21,.23]]);
  }
 }
 const topPalette=[['Anthrazit','#3a3d40'],['Rot','#e34e5b'],['Blau','#7daed4'],['Creme','#e8dfcf'],['Schwarz','#24232b'],['Grün','#527c68'],['Violett','#8b75c8']];
