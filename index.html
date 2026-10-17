@@ -177,10 +177,10 @@ const hairTail=mesh(new THREE.SphereGeometry(.085,18,14),hairMat,mannequin,[-.04
 mesh(new THREE.CylinderGeometry(.075,.085,.13,18),skinMat,mannequin,[0,2.22,0]);
 const earsL=mesh(new THREE.SphereGeometry(.045,12,12),skinMat,mannequin,[-.18,2.47,0],[.55,1,.6]);const earsR=mesh(new THREE.SphereGeometry(.045,12,12),skinMat,mannequin,[.18,2.47,0],[.55,1,.6]);
 const face=mesh(new THREE.SphereGeometry(.018,10,10),new THREE.MeshBasicMaterial({color:'#28202a'}),mannequin,[-.07,2.49,.178],[1,1,.5]);const face2=face.clone();face2.position.x=.07;mannequin.add(face2);
-capsule(.105,.42,skinMat,mannequin,[-.19,1.79,0],[0,0,-.1]);capsule(.105,.42,skinMat,mannequin,[.19,1.79,0],[0,0,.1]);
+const upperArmL=capsule(.105,.42,skinMat,mannequin,[-.19,1.79,0],[0,0,-.1]);const upperArmR=capsule(.105,.42,skinMat,mannequin,[.19,1.79,0],[0,0,.1]);
 const torso=mesh(new THREE.CylinderGeometry(.29,.23,.72,32,1),darkMat,mannequin,[0,1.78,0]);torso.scale.z=.52;
 const pelvis=mesh(new THREE.SphereGeometry(.25,24,16),darkMat,mannequin,[0,1.36,0],[1,.62,.55]);
-capsule(.105,.64,skinMat,mannequin,[-.39,1.65,0],[0,0,.2]);capsule(.105,.64,skinMat,mannequin,[.39,1.65,0],[0,0,-.2]);
+const lowerArmL=capsule(.105,.64,skinMat,mannequin,[-.39,1.65,0],[0,0,.2]);const lowerArmR=capsule(.105,.64,skinMat,mannequin,[.39,1.65,0],[0,0,-.2]);
 capsule(.08,.47,skinMat,mannequin,[-.46,1.13,0],[0,0,.08]);capsule(.08,.47,skinMat,mannequin,[.46,1.13,0],[0,0,-.08]);
 const handsL=mesh(new THREE.SphereGeometry(.09,16,12),skinMat,mannequin,[-.49,.83,0],[.8,1.2,.7]);const handsR=mesh(new THREE.SphereGeometry(.09,16,12),skinMat,mannequin,[.49,.83,0],[.8,1.2,.7]);
 const legL=capsule(.115,.67,darkMat,mannequin,[-.13,.75,0]);const legR=capsule(.115,.67,darkMat,mannequin,[.13,.75,0]);
@@ -340,6 +340,52 @@ document.getElementById('resetBtn').addEventListener('click',()=>{selectedTop='#
 createClothes('sport');updateColors();makeSwatches('topColors',topPalette,'top');makeSwatches('bottomColors',bottomPalette,'bottom');
 window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 const runwayClock=new THREE.Clock();
+// Capture available humanoid bones for imported models; unrigged GLBs remain body-rotated only.
+const rigCache=new WeakMap();
+function getHumanoidRig(actor){
+ if(!actor) return null;
+ if(rigCache.has(actor)) return rigCache.get(actor);
+ const found={};
+ const aliases={
+  leftArm:['leftarm','upperarm_l','upperarm.left','mixamorigleftarm','arm_l'],
+  rightArm:['rightarm','upperarm_r','upperarm.right','mixamorigrightarm','arm_r'],
+  leftForeArm:['leftforearm','lowerarm_l','lowerarm.left','mixamorigleftforearm','forearm_l'],
+  rightForeArm:['rightforearm','lowerarm_r','lowerarm.right','mixamorigrighforearm','forearm_r'],
+  leftLeg:['leftupleg','thigh_l','thigh.left','mixamorigleftupleg','upperleg_l'],
+  rightLeg:['rightupleg','thigh_r','thigh.right','mixamorigrightupleg','upperleg_r'],
+  leftShin:['leftleg','calf_l','calf.left','mixamorigleftleg','lowerleg_l'],
+  rightShin:['rightleg','calf_r','calf.right','mixamorigrightleg','lowerleg_r']
+ };
+ actor.traverse?.(o=>{if(!o.isBone)return;const n=o.name.toLowerCase().replace(/[ .-]/g,'');for(const [key,names] of Object.entries(aliases)){if(!found[key]&&names.some(alias=>n.includes(alias.replace(/[ .-]/g,''))))found[key]=o;}});
+ const rig=Object.keys(found).length?{bones:found,base:{}}:null;
+ if(rig) for(const [key,bone] of Object.entries(found)) rig.base[key]=bone.rotation.clone();
+ rigCache.set(actor,rig);return rig;
+}
+function animateLimbs(actor,t,walking){
+ const swing=Math.sin(t*5.5)*(walking?0.62:0.10);
+ const armSwing=Math.sin(t*5.5+Math.PI)*(walking?0.48:0.08);
+ if(actor===mannequin){
+   upperArmL.rotation.x=armSwing;upperArmR.rotation.x=-armSwing;
+   upperArmL.rotation.z=-.1+Math.max(0,Math.sin(t*2.75))*.18;
+   upperArmR.rotation.z=.1-Math.max(0,Math.sin(t*2.75+Math.PI))*.18;
+   lowerArmL.rotation.x=armSwing*.55;lowerArmR.rotation.x=-armSwing*.55;
+   legL.rotation.x=swing;legR.rotation.x=-swing;
+   legL.rotation.z=-.02;legR.rotation.z=.02;
+   return;
+ }
+ const rig=getHumanoidRig(actor);
+ if(!rig)return;
+ const b=rig.bones,base=rig.base;
+ for(const key of Object.keys(b)) b[key].rotation.copy(base[key]);
+ if(b.leftArm)b.leftArm.rotation.x=base.leftArm.x+armSwing;
+ if(b.rightArm)b.rightArm.rotation.x=base.rightArm.x-armSwing;
+ if(b.leftForeArm)b.leftForeArm.rotation.x=base.leftForeArm.x+Math.max(0,armSwing)*.45;
+ if(b.rightForeArm)b.rightForeArm.rotation.x=base.rightForeArm.x+Math.max(0,-armSwing)*.45;
+ if(b.leftLeg)b.leftLeg.rotation.x=base.leftLeg.x+swing;
+ if(b.rightLeg)b.rightLeg.rotation.x=base.rightLeg.x-swing;
+ if(b.leftShin)b.leftShin.rotation.x=base.leftShin.x+Math.max(0,-swing)*.45;
+ if(b.rightShin)b.rightShin.rotation.x=base.rightShin.x+Math.max(0,swing)*.45;
+}
 function animate(){
  requestAnimationFrame(animate);
  const now=performance.now();
@@ -350,6 +396,8 @@ function animate(){
      const t=(now-runwayStart)/1000;
      // A looping runway sequence: walk forward, turn to show the outfit, pose, then return to front.
      const phase=t%12;
+     const walking=phase<3||phase>=9;
+     animateLimbs(actor,t,walking);
      let turn=0,walk=0,lean=0;
      if(phase<3){walk=Math.sin(phase/3*Math.PI)*.20;turn=Math.sin(phase/3*Math.PI)*.12;}
      else if(phase<5){turn=((phase-3)/2)*Math.PI*.9;}
@@ -364,6 +412,9 @@ function animate(){
  }else if(runwayBase){
    runwayBase.actor.position.copy(runwayBase.position);
    runwayBase.actor.rotation.copy(runwayBase.rotation);
+   animateLimbs(runwayBase.actor,0,false);
+   if(runwayBase.actor===mannequin){upperArmL.rotation.set(0,0,-.1);upperArmR.rotation.set(0,0,.1);lowerArmL.rotation.set(0,0,.2);lowerArmR.rotation.set(0,0,-.2);legL.rotation.set(0,0,0);legR.rotation.set(0,0,0);}
+   else {const rig=getHumanoidRig(runwayBase.actor);if(rig)for(const [key,bone] of Object.entries(rig.bones))bone.rotation.copy(rig.base[key]);}
    runwayBase=null;
  }
  controls.update();ring.rotation.z+=.0015;renderer.render(scene,camera)
